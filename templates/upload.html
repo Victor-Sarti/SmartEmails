@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Processador de E-mails</h1>
+    
+    <div class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 mb-6 rounded" role="alert">
+        <p class="font-bold">Instruções</p>
+        <p>Você pode fazer upload de um arquivo (.txt ou .pdf) ou colar o texto do e-mail diretamente no campo abaixo.</p>
+    </div>
+
+    <form id="emailForm" action="{{ url_for('processar_email') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+        <!-- Área de Upload de Arquivo -->
+        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+            </svg>
+            <div class="mt-2">
+                <label for="arquivo" class="cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none">
+                    <span>Selecione um arquivo</span>
+                    <input id="arquivo" name="arquivo" type="file" class="sr-only" accept=".txt,.pdf">
+                </label>
+                <p class="text-xs text-gray-500 mt-1">Arquivos suportados: .txt, .pdf (máx. 16MB)</p>
+            </div>
+            <p id="nomeArquivo" class="text-sm text-gray-600 mt-2">Nenhum arquivo selecionado</p>
+        </div>
+
+        <div class="relative">
+            <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                <div class="w-full border-t border-gray-300"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+                <span class="px-2 bg-white text-gray-500">OU</span>
+            </div>
+        </div>
+
+        <!-- Área de Texto Direto -->
+        <div>
+            <label for="texto_email" class="block text-sm font-medium text-gray-700 mb-2">
+                Cole o texto do e-mail aqui:
+            </label>
+            <textarea 
+                id="texto_email" 
+                name="texto_email" 
+                rows="10" 
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Cole o conteúdo do e-mail aqui...">
+            </textarea>
+        </div>
+
+        <!-- Botão de Envio -->
+        <div class="flex justify-end">
+            <button 
+                type="submit" 
+                id="btnProcessar"
+                class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                Processar E-mail
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Modal de Visualização Rápida -->
+<div id="previewModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Pré-visualização</h3>
+            <button onclick="fecharPreview()" class="text-gray-400 hover:text-gray-500">
+                <span class="sr-only">Fechar</span>
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div id="previewContent" class="max-h-96 overflow-y-auto p-3 bg-gray-50 rounded border border-gray-200">
+            <p class="text-gray-500 italic">Carregando pré-visualização...</p>
+        </div>
+        <div class="mt-4 flex justify-end space-x-3">
+            <button 
+                type="button" 
+                onclick="fecharPreview()" 
+                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Voltar
+            </button>
+            <button 
+                type="button" 
+                onclick="enviarFormulario()" 
+                class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Confirmar e Processar
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Mostra o nome do arquivo selecionado
+document.getElementById('arquivo').addEventListener('change', function(e) {
+    const fileName = e.target.files.length ? e.target.files[0].name : 'Nenhum arquivo selecionado';
+    document.getElementById('nomeArquivo').textContent = fileName;
+    
+    // Limpa o campo de texto se um arquivo for selecionado
+    if (e.target.files.length) {
+        document.getElementById('texto_email').value = '';
+    }
+});
+
+// Limpa o campo de arquivo quando o texto é digitado
+document.getElementById('texto_email').addEventListener('input', function(e) {
+    if (e.target.value.trim() !== '') {
+        document.getElementById('arquivo').value = '';
+        document.getElementById('nomeArquivo').textContent = 'Nenhum arquivo selecionado';
+    }
+});
+
+// Manipula o envio do formulário
+document.getElementById('emailForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Verifica se há conteúdo para processar
+    const arquivo = document.getElementById('arquivo').files[0];
+    const texto = document.getElementById('texto_email').value.trim();
+    
+    if (!arquivo && !texto) {
+        alert('Por favor, insira um texto ou selecione um arquivo.');
+        return;
+    }
+    
+    // Mostra a pré-visualização
+    mostrarPreview();
+});
+
+// Função para mostrar a pré-visualização
+function mostrarPreview() {
+    const formData = new FormData(document.getElementById('emailForm'));
+    
+    // Adiciona o parâmetro de preview
+    fetch("{{ url_for('processar_email', preview=1) }}", {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            document.getElementById('previewContent').innerHTML = 
+                `<div class="whitespace-pre-wrap">${data.content}</div>`;
+            document.getElementById('previewModal').classList.remove('hidden');
+        } else {
+            throw new Error(data.message || 'Erro ao gerar pré-visualização');
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Ocorreu um erro ao gerar a pré-visualização: ' + error.message);
+    });
+}
+
+// Função para fechar a pré-visualização
+function fecharPreview() {
+    document.getElementById('previewModal').classList.add('hidden');
+}
+
+// Função para enviar o formulário
+function enviarFormulario() {
+    document.getElementById('emailForm').submit();
+}
+</script>
+{% endblock %}

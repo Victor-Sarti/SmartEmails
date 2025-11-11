@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+    <!-- Cabeçalho -->
+    <div class="bg-blue-600 text-white p-4">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold">E-mail Processado</h1>
+                <p class="text-blue-100 text-sm">Conteúdo extraído com sucesso!</p>
+            </div>
+            <a href="{{ url_for('index') }}" class="text-blue-100 hover:text-white">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                </svg>
+                <span class="sr-only">Voltar</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Conteúdo do E-mail -->
+    <div class="p-6">
+        <div class="mb-6">
+            <h2 class="text-lg font-medium text-gray-900 mb-2">Conteúdo Extraído:</h2>
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <pre class="whitespace-pre-wrap font-sans text-gray-800">{{ conteudo }}</pre>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-200 pt-4 mt-6">
+            <div class="flex justify-between">
+                <a href="{{ url_for('index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Voltar ao Início
+                </a>
+                <div class="space-x-3">
+                    <button 
+                        onclick="copiarParaAreaDeTransferencia()" 
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                        </svg>
+                        Copiar Texto
+                    </button>
+                    <button 
+                        onclick="baixarComoTxt()" 
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Baixar como TXT
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmação -->
+<div id="copySuccess" class="hidden fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg">
+    Texto copiado para a área de transferência!
+</div>
+
+<script>
+// Função para copiar o texto para a área de transferência
+function copiarParaAreaDeTransferencia() {
+    const conteudo = `{{ conteudo }}`;
+    
+    // Cria um elemento textarea temporário
+    const textarea = document.createElement('textarea');
+    textarea.value = conteudo;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'absolute';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    
+    // Seleciona e copia o texto
+    textarea.select();
+    document.execCommand('copy');
+    
+    // Remove o textarea
+    document.body.removeChild(textarea);
+    
+    // Mostra a mensagem de sucesso
+    const successMsg = document.getElementById('copySuccess');
+    successMsg.classList.remove('hidden');
+    
+    // Esconde a mensagem após 3 segundos
+    setTimeout(() => {
+        successMsg.classList.add('hidden');
+    }, 3000);
+}
+
+// Função para baixar o conteúdo como arquivo TXT
+function baixarComoTxt() {
+    const conteudo = `{{ conteudo }}`;
+    const blob = new Blob([conteudo], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'email_processado.txt';
+    document.body.appendChild(a);
+    a.click();
+    
+    // Limpa o objeto URL
+    setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }, 100);
+}
+</script>
+{% endblock %}

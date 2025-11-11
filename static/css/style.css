@@ -1,0 +1,77 @@
+/* Estilos personalizados */
+
+/* Animações */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
+
+/* Transições suaves */
+button, a, input, textarea {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Estilização da barra de rolagem */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Melhorias de usabilidade para formulários */
+input:focus, textarea:focus {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+/* Estilo para mensagens de erro */
+.error-message {
+    @apply text-red-500 text-sm mt-1;
+}
+
+/* Estilo para mensagens de sucesso */
+.success-message {
+    @apply text-green-500 text-sm mt-1;
+}
+
+/* Efeito de hover para cartões */
+.card-hover {
+    @apply transition-shadow duration-200 hover:shadow-lg;
+}
+
+/* Estilo para botões desabilitados */
+button:disabled {
+    @apply opacity-50 cursor-not-allowed;
+}
+
+/* Ajustes para dispositivos móveis */
+@media (max-width: 640px) {
+    .container {
+        @apply px-4;
+    }
+    
+    h1 {
+        @apply text-xl;
+    }
+    
+    button, input, textarea {
+        @apply text-base;
+    }
+}
