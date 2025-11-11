@@ -21,9 +21,25 @@
     <!-- Conteúdo do E-mail -->
     <div class="p-6">
         <div class="mb-6">
-            <h2 class="text-lg font-medium text-gray-900 mb-2">Conteúdo Extraído:</h2>
-            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <pre class="whitespace-pre-wrap font-sans text-gray-800">{{ conteudo }}</pre>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Texto Original -->
+                <div>
+                    <h2 class="text-lg font-medium text-gray-900 mb-2">Texto Original:</h2>
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 h-96 overflow-y-auto">
+                        <pre class="whitespace-pre-wrap font-sans text-gray-800">{{ original }}</pre>
+                    </div>
+                </div>
+                
+                <!-- Texto Processado -->
+                <div>
+                    <h2 class="text-lg font-medium text-gray-900 mb-2">
+                        Texto Processado:
+                        <span class="text-sm font-normal text-gray-500">(sem stopwords, lematizado e limpo)</span>
+                    </h2>
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 h-96 overflow-y-auto">
+                        <pre class="whitespace-pre-wrap font-sans text-gray-800">{{ processado }}</pre>
+                    </div>
+                </div>
             </div>
         </div>
 
