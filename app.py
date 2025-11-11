@@ -1,6 +1,7 @@
 import os
 import re
 import string
+import torch
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from werkzeug.utils import secure_filename
 from PyPDF2 import PdfReader
@@ -9,9 +10,24 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from torch.nn.functional import softmax
 
 # Inicializa o lematizador
 lemmatizer = WordNetLemmatizer()
+
+# Carrega o modelo e tokenizador do Hugging Face
+MODEL_NAME = "distilbert-base-uncased"
+try:
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=2)
+    # Definir os rótulos das classes (ajuste conforme necessário)
+    CLASS_LABELS = ["Improdutivo", "Produtivo"]
+except Exception as e:
+    print(f"Erro ao carregar o modelo: {e}")
+    tokenizer = None
+    model = None
+    CLASS_LABELS = ["Improdutivo", "Produtivo"]  # Rótulos padrão
 
 # Obtém as stopwords em português
 try:
@@ -115,6 +131,45 @@ def index():
     """Rota principal que exibe o formulário de upload."""
     return render_template('upload.html')
 
+def classificar_texto(texto):
+    """
+    Classifica o texto usando o modelo pré-treinado.
+    Retorna um dicionário com a categoria e a confiança.
+    """
+    if not texto or not model or not tokenizer:
+        return {
+            "categoria": "Erro",
+            "confianca": 0.0,
+            "erro": "Modelo não carregado corretamente"
+        }
+    
+    try:
+        # Tokeniza o texto
+        inputs = tokenizer(texto, return_tensors="pt", truncation=True, max_length=512)
+        
+        # Faz a previsão
+        with torch.no_grad():
+            outputs = model(**inputs)
+        
+        # Obtém as probabilidades
+        probs = softmax(outputs.logits, dim=1)
+        
+        # Pega a classe com maior probabilidade
+        pred_class = torch.argmax(probs, dim=1).item()
+        confidence = probs[0][pred_class].item() * 100  # Convertendo para porcentagem
+        
+        return {
+            "categoria": CLASS_LABELS[pred_class],
+            "confianca": round(confidence, 2),
+            "erro": None
+        }
+    except Exception as e:
+        return {
+            "categoria": "Erro",
+            "confianca": 0.0,
+            "erro": str(e)
+        }
+
 @app.route('/processar', methods=['POST'])
 @app.route('/processar/<int:preview>', methods=['POST'])
 def processar_email(preview=0):
@@ -162,18 +217,23 @@ def processar_email(preview=0):
     # Aplica o pré-processamento ao texto
     email_content = preprocess_text(original_content)
     
+    # Classifica o texto original (não processado)
+    classificacao = classificar_texto(original_content)
+    
     # Se for uma pré-visualização (AJAX), retorna JSON
     if preview:
         return jsonify({
             'status': 'success',
             'original': original_content[:500] + '...' if len(original_content) > 500 else original_content,
-            'processed': email_content[:500] + '...' if len(email_content) > 500 else email_content
+            'processed': email_content[:500] + '...' if len(email_content) > 500 else email_content,
+            'classificacao': classificacao
         })
     
-    # Senão, renderiza a página de resultado com ambas as versões
+    # Senão, renderiza a página de resultado com todas as informações
     return render_template('resultado.html', 
                          original=original_content,
-                         processado=email_content)
+                         processado=email_content,
+                         classificacao=classificacao)
 
 if __name__ == '__main__':
     # Garante que a pasta de uploads existe

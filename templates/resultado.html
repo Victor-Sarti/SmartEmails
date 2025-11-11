@@ -18,6 +18,39 @@
         </div>
     </div>
 
+    <!-- Cabeçalho com a classificação -->
+    <div class="bg-white px-6 py-4 border-b border-gray-200">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+                <h2 class="text-xl font-semibold text-gray-900">Resultado da Análise</h2>
+                <p class="mt-1 text-sm text-gray-500">Classificação do e-mail</p>
+            </div>
+            <div class="mt-4 md:mt-0">
+                <div class="flex items-center">
+                    <span class="text-sm font-medium text-gray-700 mr-2">Classificação:</span>
+                    <span class="px-3 py-1 rounded-full text-sm font-medium 
+                        {% if classificacao.categoria == 'Produtivo' %}
+                            bg-green-100 text-green-800
+                        {% elif classificacao.categoria == 'Improdutivo' %}
+                            bg-red-100 text-red-800
+                        {% else %}
+                            bg-yellow-100 text-yellow-800
+                        {% endif %}">
+                        {{ classificacao.categoria }}
+                    </span>
+                    <span class="ml-3 text-sm text-gray-600">
+                        {{ "%.2f"|format(classificacao.confianca) }}% de confiança
+                    </span>
+                </div>
+                {% if classificacao.erro %}
+                <div class="mt-2 text-sm text-red-600">
+                    <p>Erro na classificação: {{ classificacao.erro }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
     <!-- Conteúdo do E-mail -->
     <div class="p-6">
         <div class="mb-6">
@@ -36,7 +69,7 @@
                         Texto Processado:
                         <span class="text-sm font-normal text-gray-500">(sem stopwords, lematizado e limpo)</span>
                     </h2>
-                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 h-96 overflow-y-auto">
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 h-96 overflow-y-auto">
                         <pre class="whitespace-pre-wrap font-sans text-gray-800">{{ processado }}</pre>
                     </div>
                 </div>
