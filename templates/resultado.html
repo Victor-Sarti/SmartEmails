@@ -53,6 +53,23 @@
 
     <!-- Conteúdo do E-mail -->
     <div class="p-6">
+        <!-- Seção de Resposta Automática -->
+        <div class="mb-6 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Resposta Automática Sugerida</h2>
+            <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <p class="whitespace-pre-wrap text-gray-800">{{ resposta_automatica }}</p>
+                    </div>
+                    <button onclick="copiarResposta()" class="ml-4 px-3 py-1 bg-blue-50 text-blue-600 text-sm rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-200">
+                        Copiar
+                    </button>
+                </div>
+            </div>
+            <p class="mt-2 text-sm text-gray-500">Esta é uma resposta automática sugerida com base na classificação do e-mail.</p>
+        </div>
+
+        <!-- Seção de Análise -->
         <div class="mb-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Texto Original -->
@@ -107,13 +124,62 @@
     </div>
 </div>
 
+<script>
+    function copiarResposta() {
+        const resposta = `{{ resposta_automatica }}`;
+        navigator.clipboard.writeText(resposta).then(() => {
+            // Mostrar feedback visual (opcional)
+            const btn = document.querySelector('button[onclick="copiarResposta()"]');
+            const originalText = btn.textContent;
+            btn.textContent = 'Copiado!';
+            btn.classList.remove('bg-blue-50', 'text-blue-600', 'hover:bg-blue-100');
+            btn.classList.add('bg-green-50', 'text-green-600');
+            
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.classList.remove('bg-green-50', 'text-green-600');
+                btn.classList.add('bg-blue-50', 'text-blue-600', 'hover:bg-blue-100');
+            }, 2000);
+        }).catch(err => {
+            console.error('Erro ao copiar texto: ', err);
+            alert('Não foi possível copiar o texto. Por favor, copie manualmente.');
+        });
+    }
+</script>
+
 <!-- Modal de confirmação -->
 <div id="copySuccess" class="hidden fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg">
     Texto copiado para a área de transferência!
 </div>
 
 <script>
-// Função para copiar o texto para a área de transferência
+    function copiarParaAreaDeTransferencia() {
+        const conteudo = `{{ conteudo }}`;
+        
+        // Cria um elemento textarea temporário
+        const textarea = document.createElement('textarea');
+        textarea.value = conteudo;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'absolute';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        
+        // Seleciona e copia o texto
+        textarea.select();
+        document.execCommand('copy');
+        
+        // Remove o textarea
+        document.body.removeChild(textarea);
+        
+        // Mostra a mensagem de sucesso
+        const successMsg = document.getElementById('copySuccess');
+        successMsg.classList.remove('hidden');
+        
+        // Esconde a mensagem após 3 segundos
+        setTimeout(() => {
+            successMsg.classList.add('hidden');
+        }, 3000);
+    }
 function copiarParaAreaDeTransferencia() {
     const conteudo = `{{ conteudo }}`;
     

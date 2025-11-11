@@ -131,6 +131,31 @@ def index():
     """Rota principal que exibe o formulário de upload."""
     return render_template('upload.html')
 
+def gerar_resposta(texto, categoria):
+    """
+    Gera uma resposta automática com base na categoria do e-mail.
+    
+    Args:
+        texto (str): O texto do e-mail original (não utilizado na versão atual)
+        categoria (str): A categoria do e-mail ('Produtivo' ou 'Improdutivo')
+        
+    Returns:
+        str: Resposta gerada automaticamente
+    """
+    if categoria == "Produtivo":
+        return (
+            "Agradecemos pelo seu contato. Sua solicitação foi recebida e será analisada "
+            "pela nossa equipe. Retornaremos o mais breve possível com um retorno sobre o assunto."
+            "\n\nAtenciosamente,\nEquipe de Atendimento"
+        )
+    else:  # Improdutivo
+        return (
+            "Agradecemos o seu contato. Após análise, identificamos que esta mensagem "
+            "não requer nenhuma ação adicional da nossa parte. "
+            "Caso tenha outras dúvidas ou necessidades, por favor, entre em contato conosco."
+            "\n\nAtenciosamente,\nEquipe de Atendimento"
+        )
+
 def classificar_texto(texto):
     """
     Classifica o texto usando o modelo pré-treinado.
@@ -220,20 +245,25 @@ def processar_email(preview=0):
     # Classifica o texto original (não processado)
     classificacao = classificar_texto(original_content)
     
+    # Gera uma resposta automática com base na classificação
+    resposta_automatica = gerar_resposta(original_content, classificacao["categoria"])
+    
     # Se for uma pré-visualização (AJAX), retorna JSON
     if preview:
         return jsonify({
             'status': 'success',
             'original': original_content[:500] + '...' if len(original_content) > 500 else original_content,
             'processed': email_content[:500] + '...' if len(email_content) > 500 else email_content,
-            'classificacao': classificacao
+            'classificacao': classificacao,
+            'resposta_automatica': resposta_automatica
         })
     
     # Senão, renderiza a página de resultado com todas as informações
     return render_template('resultado.html', 
                          original=original_content,
                          processado=email_content,
-                         classificacao=classificacao)
+                         classificacao=classificacao,
+                         resposta_automatica=resposta_automatica)
 
 if __name__ == '__main__':
     # Garante que a pasta de uploads existe
