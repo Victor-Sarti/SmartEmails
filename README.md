@@ -64,7 +64,6 @@ email_classifier/
    ```
 
 7. **Acessar no navegador**
-   Abra [http://localhost:5000](http://localhost:5000)
 
 ## 🛠️ Tecnologias Utilizadas
 
